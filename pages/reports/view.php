@@ -67,9 +67,6 @@ require_once '../../layouts/header.php';
                 <a href="../../includes/export_report.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <i class="fas fa-file-csv mr-2"></i> Export CSV
                 </a>
-                <a href="../../includes/export_report_html.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    <i class="fas fa-file-code mr-2"></i> Export HTML
-                </a>
                 <?php if (Auth::isAdmin()): ?>
                 <a href="download_pdf.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                     <i class="fas fa-download mr-2"></i> Download PDF
