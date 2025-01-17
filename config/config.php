@@ -4,13 +4,20 @@ session_start();
 // Include database configuration
 require_once __DIR__ . '/../includes/database.php';
 
+// Define server environment
+define('ENVIRONMENT', 'production');
+
 // Base URL configuration
 if (php_sapi_name() === 'cli') {
-    define('BASE_URL', '/gpdreports');
+    define('BASE_URL', '');
 } else {
-    $protocol = 'http';  // Change to https after SSL setup
-    $host = '10.10.2.38';
-    define('BASE_URL', $protocol . '://' . $host . '/gpdreports');
+    if (ENVIRONMENT === 'production') {
+        define('BASE_URL', '');  // Empty for production since we're in root
+    } else {
+        $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        define('BASE_URL', $protocol . '://' . $host . '/gpdreports');
+    }
 }
 
 // Error reporting - Production settings
