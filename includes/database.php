@@ -2,8 +2,8 @@
 class Database {
     private $host = 'localhost';
     private $db_name = 'gpdreports';
-    private $username = 'root';
-    private $password = '';
+    private $username = 'gpdroot';
+    private $password = 'lolamarsh1@A';
     private $conn;
 
     public function getConnection() {
