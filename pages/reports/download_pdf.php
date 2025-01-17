@@ -262,6 +262,37 @@ try {
     );
     $pdf->ColoredTable($header, $impact);
 
+    // Add documents section if files exist
+    if ($report['testimonies_file'] || $report['innovations_file']) {
+        $pdf->AddPage();
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->Cell(0, 10, 'Attached Documents', 0, 1, 'L');
+        $pdf->Line($pdf->GetX(), $pdf->GetY(), 195, $pdf->GetY());
+        $pdf->Ln(5);
+
+        if ($report['testimonies_file']) {
+            $pdf->SetFont('helvetica', 'B', 11);
+            $pdf->Cell(50, 7, 'Testimonies Document:', 0, 0);
+            $pdf->SetFont('helvetica', '', 11);
+            $pdf->SetTextColor(0, 0, 255); // Blue color for link
+            $testimoniesUrl = BASE_URL . '/uploads/documents/' . $report['testimonies_file'];
+            $pdf->Cell(0, 7, $report['testimonies_file'], 0, 1, 'L', false, $testimoniesUrl);
+            $pdf->SetTextColor(44, 62, 80); // Reset text color
+            $pdf->Ln(3);
+        }
+
+        if ($report['innovations_file']) {
+            $pdf->SetFont('helvetica', 'B', 11);
+            $pdf->Cell(50, 7, 'Innovations Document:', 0, 0);
+            $pdf->SetFont('helvetica', '', 11);
+            $pdf->SetTextColor(0, 0, 255); // Blue color for link
+            $innovationsUrl = BASE_URL . '/uploads/documents/' . $report['innovations_file'];
+            $pdf->Cell(0, 7, $report['innovations_file'], 0, 1, 'L', false, $innovationsUrl);
+            $pdf->SetTextColor(44, 62, 80); // Reset text color
+            $pdf->Ln(3);
+        }
+    }
+
     // Images Gallery
     $imagesQuery = "SELECT * FROM report_images WHERE report_id = ?";
     $stmt = $conn->prepare($imagesQuery);
