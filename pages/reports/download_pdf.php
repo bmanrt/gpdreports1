@@ -134,8 +134,11 @@ try {
     // Report Meta Information
     $pdf->SetFont('helvetica', 'B', 16);
     $pdf->SetTextColor(41, 128, 185); // Blue
+    $pdf->Cell(0, 10, 'GPD Report Details', 0, 1, 'C');
+    $pdf->Ln(5);
+
+    // Report Information Section
     $pdf->Cell(0, 10, 'Report Information', 0, 1, 'L');
-    $pdf->SetDrawColor(189, 195, 199);
     $pdf->Line($pdf->GetX(), $pdf->GetY(), 195, $pdf->GetY());
     $pdf->Ln(5);
 
@@ -169,20 +172,18 @@ try {
     
     $pdf->SetX(20);
     $pdf->SetFont('helvetica', 'B', 11);
-    $pdf->Cell(40, 7, 'Date:', 0, 0);
+    $pdf->Cell(40, 7, 'Report Month:', 0, 0);
     $pdf->SetFont('helvetica', '', 11);
-    $pdf->Cell(0, 7, date('F j, Y', strtotime($report['created_at'])), 0, 1);
-    
+    $pdf->Cell(0, 7, date('F Y', strtotime($report['report_month'])), 0, 1);
+
     $pdf->Ln(15);
 
-    // Copies Information
+    // Total Copies Report
     $pdf->SetFont('helvetica', 'B', 16);
-    $pdf->SetTextColor(41, 128, 185);
-    $pdf->Cell(0, 10, 'Distribution Statistics', 0, 1, 'L');
+    $pdf->Cell(0, 10, 'Total Copies Report', 0, 1, 'L');
     $pdf->Line($pdf->GetX(), $pdf->GetY(), 195, $pdf->GetY());
     $pdf->Ln(5);
 
-    // Create statistics table
     $header = array('Metric', 'Value', 'Percentage');
     $data = array(
         array('Total Copies', number_format($report['total_copies']), '100%'),
@@ -190,46 +191,112 @@ try {
             round(($report['total_distribution'] / $report['total_copies']) * 100, 1) . '%')
     );
     $pdf->ColoredTable($header, $data);
-    
-    $pdf->Ln(15);
 
-    // Impact Metrics
+    // Strategic Income Alerts
+    $pdf->Ln(10);
     $pdf->SetFont('helvetica', 'B', 16);
-    $pdf->SetTextColor(41, 128, 185);
-    $pdf->Cell(0, 10, 'Impact Metrics', 0, 1, 'L');
+    $pdf->Cell(0, 10, 'Strategic Income Alerts', 0, 1, 'L');
     $pdf->Line($pdf->GetX(), $pdf->GetY(), 195, $pdf->GetY());
     $pdf->Ln(5);
 
-    // Create 2x2 grid for impact metrics
-    $pdf->SetFillColor(236, 240, 241);
-    $pdf->SetTextColor(44, 62, 80);
-    $metrics = array(
-        array('Souls Won', $report['souls_won']),
-        array('New Churches', $report['new_churches']),
-        array('New Partners', $report['new_partners']),
-        array('External Ministers', $report['external_ministers'])
+    $header = array('Metric', 'Value');
+    $alerts = array(
+        array('Monthly Copies', number_format($report['monthly_copies'])),
+        array('Wonder Alerts', number_format($report['wonder_alerts'])),
+        array('Say Yes to Kids Alerts', number_format($report['kids_alerts'])),
+        array('Language Redemption Missions', number_format($report['language_missions']))
     );
+    $pdf->ColoredTable($header, $alerts);
 
-    $x = $pdf->GetX();
-    $y = $pdf->GetY();
-    $width = 85;
-    $height = 25;
-    $spacing = 10;
+    // Sub Campaigns
+    $pdf->AddPage();
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->Cell(0, 10, 'Distribution Report on Sub Campaigns', 0, 1, 'L');
+    $pdf->Line($pdf->GetX(), $pdf->GetY(), 195, $pdf->GetY());
+    $pdf->Ln(5);
 
-    foreach($metrics as $i => $metric) {
-        $currentX = $x + ($i % 2) * ($width + $spacing);
-        $currentY = $y + floor($i / 2) * ($height + $spacing);
-        
-        $pdf->SetXY($currentX, $currentY);
-        $pdf->Rect($currentX, $currentY, $width, $height, 'F');
-        
-        $pdf->SetXY($currentX + 5, $currentY + 5);
-        $pdf->SetFont('helvetica', 'B', 11);
-        $pdf->Cell($width - 10, 7, $metric[0], 0, 1);
-        
-        $pdf->SetXY($currentX + 5, $currentY + 12);
-        $pdf->SetFont('helvetica', '', 14);
-        $pdf->Cell($width - 10, 7, number_format($metric[1]), 0, 1);
+    $header = array('Campaign', 'Copies');
+    $campaigns = array(
+        array('Penetrating with Truth', number_format($report['penetrating_truth'])),
+        array('Penetrating with Languages', number_format($report['penetrating_languages'])),
+        array('Youth Aglow', number_format($report['youth_aglow'])),
+        array('Teevolution', number_format($report['teevolution'])),
+        array('Subscriptions', number_format($report['subscriptions']))
+    );
+    $pdf->ColoredTable($header, $campaigns);
+
+    // Program Report
+    $pdf->Ln(10);
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->Cell(0, 10, 'Program Report', 0, 1, 'L');
+    $pdf->Line($pdf->GetX(), $pdf->GetY(), 195, $pdf->GetY());
+    $pdf->Ln(5);
+
+    $header = array('Program', 'Count');
+    $programs = array(
+        array('Partners Prayer Programs', number_format($report['prayer_programs'])),
+        array('Partners Programs', number_format($report['partner_programs']))
+    );
+    $pdf->ColoredTable($header, $programs);
+
+    // Reach and Impact Report
+    $pdf->AddPage();
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->Cell(0, 10, 'Reach and Impact Report', 0, 1, 'L');
+    $pdf->Line($pdf->GetX(), $pdf->GetY(), 195, $pdf->GetY());
+    $pdf->Ln(5);
+
+    $header = array('Metric', 'Count');
+    $impact = array(
+        array('Total Distribution', number_format($report['total_distribution'])),
+        array('Souls Won', number_format($report['souls_won'])),
+        array('Rhapsody Outreaches', number_format($report['rhapsody_outreaches'])),
+        array('Rhapsody Cells', number_format($report['rhapsody_cells'])),
+        array('New Churches', number_format($report['new_churches'])),
+        array('New Partners', number_format($report['new_partners'])),
+        array('Lingual Cells', number_format($report['lingual_cells'])),
+        array('Language Churches', number_format($report['language_churches'])),
+        array('Languages Sponsored', number_format($report['languages_sponsored'])),
+        array('Distribution Centers', number_format($report['distribution_centers'])),
+        array('External Ministers', number_format($report['external_ministers']))
+    );
+    $pdf->ColoredTable($header, $impact);
+
+    // Images Gallery
+    $imagesQuery = "SELECT * FROM report_images WHERE report_id = ?";
+    $stmt = $conn->prepare($imagesQuery);
+    $stmt->execute([$_GET['id']]);
+    $images = $stmt->fetchAll();
+
+    if (!empty($images)) {
+        $pdf->AddPage();
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->Cell(0, 10, 'Pictures Gallery', 0, 1, 'L');
+        $pdf->Line($pdf->GetX(), $pdf->GetY(), 195, $pdf->GetY());
+        $pdf->Ln(5);
+
+        $x = 15;
+        $y = $pdf->GetY();
+        $maxHeight = 0;
+
+        foreach ($images as $image) {
+            $imagePath = '../../uploads/pictures/' . $image['image_path'];
+            if (file_exists($imagePath)) {
+                if ($x > 150) { // New row
+                    $x = 15;
+                    $y += $maxHeight + 10;
+                    $maxHeight = 0;
+                }
+                
+                $imageSize = getimagesize($imagePath);
+                $width = 80;
+                $height = ($imageSize[1] * $width) / $imageSize[0];
+                if ($height > $maxHeight) $maxHeight = $height;
+
+                $pdf->Image($imagePath, $x, $y, $width);
+                $x += $width + 10;
+            }
+        }
     }
 
     // Output the PDF
