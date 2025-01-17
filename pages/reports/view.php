@@ -46,268 +46,147 @@ $images = $stmt->fetchAll();
 require_once '../../layouts/header.php';
 ?>
 
-<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
     <!-- Back button and title -->
-    <div class="flex justify-between items-center mb-6">
-        <div class="flex items-center">
-            <a href="list.php" class="mr-4 text-gray-500 hover:text-gray-700">
-                <i class="fas fa-arrow-left"></i>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 space-y-2 sm:space-y-0">
+        <a href="list.php" class="inline-flex items-center text-gray-600 hover:text-gray-800">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Reports
+        </a>
+        <div class="flex items-center space-x-2">
+            <?php if ($report['user_id'] == $_SESSION['user_id'] || Auth::isAdmin()): ?>
+                <a href="edit.php?id=<?php echo $reportId; ?>" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                </a>
+            <?php endif; ?>
+            <a href="download_pdf.php?id=<?php echo $reportId; ?>" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                <i class="fas fa-download mr-1"></i> Download PDF
             </a>
-            <h1 class="text-2xl font-bold text-gray-900">Report Details</h1>
         </div>
-        <div class="flex items-center space-x-4">
-            <div class="text-sm text-gray-500">
-                Submitted on <?php echo date('F j, Y', strtotime($report['created_at'])); ?>
+    </div>
+
+    <!-- Report Status and Meta -->
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="flex flex-col">
+                <span class="text-sm text-gray-600">Status</span>
+                <span class="font-semibold <?php echo getStatusColor($report['status']); ?>"><?php echo ucfirst($report['status']); ?></span>
             </div>
-            <div class="flex space-x-2">
-                <?php if (Auth::isAdmin()): ?>
-                    <a href="edit.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                        <i class="fas fa-edit mr-2"></i> Edit Report
-                    </a>
-                <?php endif; ?>
-                <a href="../../includes/export_report.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <i class="fas fa-file-csv mr-2"></i> Export CSV
-                </a>
-                <a href="../../includes/export_report_html.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    <i class="fas fa-file-code mr-2"></i> Export HTML
-                </a>
+            <div class="flex flex-col">
+                <span class="text-sm text-gray-600">Submitted By</span>
+                <span class="font-semibold"><?php echo htmlspecialchars($report['username']); ?></span>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-sm text-gray-600">Region</span>
+                <span class="font-semibold"><?php echo htmlspecialchars($report['region']); ?></span>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-sm text-gray-600">Zone</span>
+                <span class="font-semibold"><?php echo htmlspecialchars($report['zone']); ?></span>
             </div>
         </div>
     </div>
 
-    <!-- Report Header -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Submitted By</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo htmlspecialchars($report['username']); ?></p>
-                </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Region</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo htmlspecialchars($report['region']); ?></p>
-                </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Zone</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo htmlspecialchars($report['zone']); ?></p>
-                </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-gray-200">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h3 class="text-sm font-medium text-gray-500">Report Month</h3>
-                        <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo date('F Y', strtotime($report['report_month'])); ?></p>
+    <!-- Total Copies Report -->
+    <div class="grid grid-cols-1 gap-4 sm:gap-6 mb-4 sm:mb-6">
+        <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Total Copies Report</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <?php 
+                    $totalCopiesFields = [
+                        'total_copies' => 'Total Copies',
+                        'total_distribution' => 'Total Distribution',
+                    ];
+                    foreach ($totalCopiesFields as $field => $label): 
+                ?>
+                    <div class="bg-gray-50 rounded p-4">
+                        <div class="text-sm text-gray-600 mb-1"><?php echo $label; ?></div>
+                        <div class="text-xl font-semibold"><?php echo number_format($report[$field]); ?></div>
                     </div>
-                    <div>
-                        <h3 class="text-sm font-medium text-gray-500">Submitted On</h3>
-                        <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo date('F j, Y', strtotime($report['created_at'])); ?></p>
-                    </div>
-                </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
 
-    <!-- Main Metrics -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <!-- Total Copies Report -->
-        <div class="bg-white rounded-lg shadow-sm">
-            <div class="px-6 py-4">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Total Copies Report</h2>
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Total Copies</span>
-                        <span class="font-semibold text-xl text-blue-600"><?php echo number_format($report['total_copies']); ?></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Total Distribution</span>
-                        <span class="font-semibold text-xl text-green-600"><?php echo number_format($report['total_distribution']); ?></span>
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                        <div class="text-sm text-gray-500">Distribution Rate</div>
-                        <div class="mt-1 flex justify-between items-center">
-                            <div class="text-lg font-semibold text-indigo-600">
-                                <?php 
-                                    $rate = $report['total_copies'] > 0 
-                                        ? round(($report['total_distribution'] / $report['total_copies']) * 100, 1) 
-                                        : 0;
-                                    echo $rate . '%';
-                                ?>
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                of total copies distributed
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Strategic Income Alerts -->
-        <div class="bg-white rounded-lg shadow-sm">
-            <div class="px-6 py-4">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Strategic Income Alerts</h2>
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Monthly Copies</span>
-                        <span class="font-semibold"><?php echo number_format($report['monthly_copies']); ?></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Wonder Alerts</span>
-                        <span class="font-semibold"><?php echo number_format($report['wonder_alerts']); ?></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Say Yes to Kids Alerts</span>
-                        <span class="font-semibold"><?php echo number_format($report['kids_alerts']); ?></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Language Redemption Missions</span>
-                        <span class="font-semibold"><?php echo number_format($report['language_missions']); ?></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sub Campaigns -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Distribution Report on Sub Campaigns</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Distribution Report -->
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Distribution Report on Sub Campaigns</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <?php 
+                $distributionFields = [
+                    'penetrating_truth' => 'Penetrating with Truth',
+                    'penetrating_languages' => 'Penetrating with Languages',
+                    'youth_aglow' => 'Youth Aglow',
+                    'minister_campaign' => 'Every Minister Campaign',
+                    'say_yes_kids' => 'Say Yes to Kids',
+                    'no_one_left' => 'No one left Behind',
+                    'teevolution' => 'Teevolution',
+                    'subscriptions' => 'Subscriptions',
+                ];
+                foreach ($distributionFields as $field => $label): 
+            ?>
                 <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Penetrating with Truth</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['penetrating_truth']); ?></p>
+                    <div class="text-sm text-gray-600 mb-1"><?php echo $label; ?></div>
+                    <div class="text-xl font-semibold"><?php echo number_format($report[$field]); ?></div>
                 </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Penetrating with Languages</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['penetrating_languages']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Youth Aglow</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['youth_aglow']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Every Minister Campaign</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['minister_campaign']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Say Yes to Kids</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['say_yes_kids']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">No one left Behind</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['no_one_left']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Teevolution</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['teevolution']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Subscriptions</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['subscriptions']); ?></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Program Report -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Program Report</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Partners Prayer Programs</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['prayer_programs']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Partners Programs</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['partner_programs']); ?></p>
-                </div>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
     <!-- Reach and Impact -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Reach and Impact Report</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Reach and Impact Report</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <?php 
+                $reachFields = [
+                    'total_distribution' => 'Total Distribution',
+                    'souls_won' => 'Souls Won',
+                    'rhapsody_outreaches' => 'Rhapsody Outreaches',
+                    'rhapsody_cells' => 'Rhapsody Cells',
+                    'new_churches' => 'New Churches',
+                    'new_partners' => 'New Partners',
+                    'lingual_cells' => 'Lingual Cells',
+                    'language_churches' => 'Language Churches',
+                    'languages_sponsored' => 'Languages Sponsored',
+                    'distribution_centers' => 'Distribution Centers',
+                    'external_ministers' => 'External Ministers',
+                ];
+                foreach ($reachFields as $field => $label): 
+            ?>
                 <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Total Distribution</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['total_distribution']); ?></p>
+                    <div class="text-sm text-gray-600 mb-1"><?php echo $label; ?></div>
+                    <div class="text-xl font-semibold"><?php echo number_format($report[$field]); ?></div>
                 </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Souls Won</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['souls_won']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Rhapsody Outreaches</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['rhapsody_outreaches']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Rhapsody Cells</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['rhapsody_cells']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">New Churches</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['new_churches']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">New Partners</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['new_partners']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Lingual Cells</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['lingual_cells']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Language Churches</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['language_churches']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Languages Sponsored</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['languages_sponsored']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">Distribution Centers</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['distribution_centers']); ?></p>
-                </div>
-                <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500">External Ministers</h4>
-                    <p class="text-xl font-semibold text-gray-900"><?php echo number_format($report['external_ministers']); ?></p>
-                </div>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
     <!-- Attachments -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Attachments</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <?php if ($report['testimonies_file']): ?>
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Attachments</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <?php if ($report['testimonies_file']): ?>
                 <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500 mb-2">Testimonies Document</h4>
-                    <a href="../../uploads/documents/<?php echo htmlspecialchars($report['testimonies_file']); ?>" 
-                       class="inline-flex items-center text-blue-600 hover:text-blue-500"
-                       download>
+                    <h3 class="font-medium text-gray-900 mb-2">Testimonies</h3>
+                    <a href="<?php echo BASE_URL; ?>/uploads/<?php echo $report['testimonies_file']; ?>" 
+                       class="text-blue-600 hover:text-blue-800 inline-flex items-center" 
+                       target="_blank">
                         <i class="fas fa-file-alt mr-2"></i>
-                        Download Testimonies
+                        View Testimonies
                     </a>
                 </div>
-                <?php endif; ?>
-
-                <?php if ($report['innovations_file']): ?>
+            <?php endif; ?>
+            
+            <?php if ($report['pictures_file']): ?>
                 <div class="bg-gray-50 rounded p-4">
-                    <h4 class="text-sm font-medium text-gray-500 mb-2">Innovations Document</h4>
-                    <a href="../../uploads/documents/<?php echo htmlspecialchars($report['innovations_file']); ?>" 
-                       class="inline-flex items-center text-blue-600 hover:text-blue-500"
-                       download>
-                        <i class="fas fa-lightbulb mr-2"></i>
-                        Download Innovations
+                    <h3 class="font-medium text-gray-900 mb-2">Pictures</h3>
+                    <a href="<?php echo BASE_URL; ?>/uploads/<?php echo $report['pictures_file']; ?>" 
+                       class="text-blue-600 hover:text-blue-800 inline-flex items-center" 
+                       target="_blank">
+                        <i class="fas fa-images mr-2"></i>
+                        View Pictures
                     </a>
                 </div>
-                <?php endif; ?>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 
