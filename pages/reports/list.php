@@ -74,7 +74,6 @@ $yearsStmt->execute();
 $availableYears = $yearsStmt->fetchAll(PDO::FETCH_COLUMN);
 
 // Get filter parameters
-$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $filterMonth = isset($_GET['month']) ? (int)$_GET['month'] : '';
 $filterYear = isset($_GET['year']) ? (int)$_GET['year'] : '';
 
@@ -85,11 +84,6 @@ $params = [];
 if (!Auth::isAdmin()) {
     $whereConditions[] = "r.user_id = :user_id";
     $params[':user_id'] = $_SESSION['user_id'];
-}
-
-if ($search) {
-    $whereConditions[] = "(u.username LIKE :search OR u.region LIKE :search OR u.zone LIKE :search)";
-    $params[':search'] = "%$search%";
 }
 
 if ($filterMonth && $filterYear) {
@@ -175,10 +169,6 @@ require_once '../../layouts/header.php';
     <form method="GET" class="mb-6">
         <div class="flex flex-wrap -mx-3">
             <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
-                <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
-                <input type="text" id="search" name="search" value="<?php echo $search; ?>" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-            </div>
-            <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
                 <label for="month" class="block text-sm font-medium text-gray-700">Month</label>
                 <select id="month" name="month" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     <option value="">Select Month</option>
@@ -207,7 +197,7 @@ require_once '../../layouts/header.php';
             </div>
             <div class="w-full px-3 mb-6 flex space-x-4">
                 <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <i class="fas fa-search mr-2"></i> Search
+                    <i class="fas fa-filter mr-2"></i> Filter
                 </button>
                 <a href="list.php" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     <i class="fas fa-times mr-2"></i> Clear Filters
@@ -315,7 +305,7 @@ require_once '../../layouts/header.php';
     <div class="mt-6 flex justify-center">
         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
             <?php if ($page > 1): ?>
-            <a href="?page=<?php echo ($page - 1); ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
+            <a href="?page=<?php echo ($page - 1); ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                 <span class="sr-only">Previous</span>
                 <i class="fas fa-chevron-left"></i>
@@ -323,14 +313,14 @@ require_once '../../layouts/header.php';
             <?php endif; ?>
             
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-            <a href="?page=<?php echo $i; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
+            <a href="?page=<?php echo $i; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium <?php echo $i === $page ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-50'; ?>">
                 <?php echo $i; ?>
             </a>
             <?php endfor; ?>
             
             <?php if ($page < $totalPages): ?>
-            <a href="?page=<?php echo ($page + 1); ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
+            <a href="?page=<?php echo ($page + 1); ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                 <span class="sr-only">Next</span>
                 <i class="fas fa-chevron-right"></i>
