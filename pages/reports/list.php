@@ -75,8 +75,6 @@ $availableYears = $yearsStmt->fetchAll(PDO::FETCH_COLUMN);
 
 // Get filter parameters
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
-$startDate = isset($_GET['start_date']) ? $_GET['start_date'] : '';
-$endDate = isset($_GET['end_date']) ? $_GET['end_date'] : '';
 $filterMonth = isset($_GET['month']) ? (int)$_GET['month'] : '';
 $filterYear = isset($_GET['year']) ? (int)$_GET['year'] : '';
 
@@ -92,16 +90,6 @@ if (!Auth::isAdmin()) {
 if ($search) {
     $whereConditions[] = "(u.username LIKE :search OR u.region LIKE :search OR u.zone LIKE :search)";
     $params[':search'] = "%$search%";
-}
-
-if ($startDate) {
-    $whereConditions[] = "r.report_month >= :start_date";
-    $params[':start_date'] = $startDate;
-}
-
-if ($endDate) {
-    $whereConditions[] = "r.report_month <= :end_date";
-    $params[':end_date'] = $endDate;
 }
 
 if ($filterMonth && $filterYear) {
@@ -189,14 +177,6 @@ require_once '../../layouts/header.php';
             <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
                 <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
                 <input type="text" id="search" name="search" value="<?php echo $search; ?>" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-            </div>
-            <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
-                <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
-                <input type="date" id="start_date" name="start_date" value="<?php echo $startDate; ?>" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-            </div>
-            <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
-                <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
-                <input type="date" id="end_date" name="end_date" value="<?php echo $endDate; ?>" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
                 <label for="month" class="block text-sm font-medium text-gray-700">Month</label>
@@ -335,7 +315,7 @@ require_once '../../layouts/header.php';
     <div class="mt-6 flex justify-center">
         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
             <?php if ($page > 1): ?>
-            <a href="?page=<?php echo ($page - 1); ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $startDate ? '&start_date=' . urlencode($startDate) : ''; ?><?php echo $endDate ? '&end_date=' . urlencode($endDate) : ''; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
+            <a href="?page=<?php echo ($page - 1); ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                 <span class="sr-only">Previous</span>
                 <i class="fas fa-chevron-left"></i>
@@ -343,14 +323,14 @@ require_once '../../layouts/header.php';
             <?php endif; ?>
             
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-            <a href="?page=<?php echo $i; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $startDate ? '&start_date=' . urlencode($startDate) : ''; ?><?php echo $endDate ? '&end_date=' . urlencode($endDate) : ''; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
+            <a href="?page=<?php echo $i; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium <?php echo $i === $page ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-50'; ?>">
                 <?php echo $i; ?>
             </a>
             <?php endfor; ?>
             
             <?php if ($page < $totalPages): ?>
-            <a href="?page=<?php echo ($page + 1); ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $startDate ? '&start_date=' . urlencode($startDate) : ''; ?><?php echo $endDate ? '&end_date=' . urlencode($endDate) : ''; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
+            <a href="?page=<?php echo ($page + 1); ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $filterMonth ? '&month=' . urlencode($filterMonth) : ''; ?><?php echo $filterYear ? '&year=' . urlencode($filterYear) : ''; ?>" 
                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                 <span class="sr-only">Next</span>
                 <i class="fas fa-chevron-right"></i>
