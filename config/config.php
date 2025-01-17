@@ -8,14 +8,16 @@ require_once __DIR__ . '/../includes/database.php';
 if (php_sapi_name() === 'cli') {
     define('BASE_URL', '/gpdreports');
 } else {
-    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $protocol = 'http';  // Change to https after SSL setup
+    $host = '10.10.2.38';
     define('BASE_URL', $protocol . '://' . $host . '/gpdreports');
 }
 
-// Error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Error reporting - Production settings
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/log/php/error.log');
 
 // Pagination configuration
 define('ITEMS_PER_PAGE', 10);
