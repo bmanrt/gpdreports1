@@ -59,47 +59,93 @@ if (Auth::isAdmin()) {
 }
 $totalCopies = $stmt->fetch(PDO::FETCH_ASSOC)['total_copies'] ?? 0;
 
+// Get filter parameters
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$startDate = isset($_GET['start_date']) ? $_GET['start_date'] : '';
+$endDate = isset($_GET['end_date']) ? $_GET['end_date'] : '';
+$minCopies = isset($_GET['min_copies']) ? (int)$_GET['min_copies'] : '';
+$maxCopies = isset($_GET['max_copies']) ? (int)$_GET['max_copies'] : '';
+
+// Build WHERE clause
+$whereConditions = [];
+$params = [];
+
+if (!Auth::isAdmin()) {
+    $whereConditions[] = "r.user_id = :user_id";
+    $params[':user_id'] = $_SESSION['user_id'];
+}
+
+if ($search) {
+    $whereConditions[] = "(u.username LIKE :search OR u.region LIKE :search OR u.zone LIKE :search)";
+    $params[':search'] = "%$search%";
+}
+
+if ($startDate) {
+    $whereConditions[] = "r.report_month >= :start_date";
+    $params[':start_date'] = $startDate;
+}
+
+if ($endDate) {
+    $whereConditions[] = "r.report_month <= :end_date";
+    $params[':end_date'] = $endDate;
+}
+
+if ($minCopies) {
+    $whereConditions[] = "r.total_copies >= :min_copies";
+    $params[':min_copies'] = $minCopies;
+}
+
+if ($maxCopies) {
+    $whereConditions[] = "r.total_copies <= :max_copies";
+    $params[':max_copies'] = $maxCopies;
+}
+
+$whereClause = $whereConditions ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+
+// Update queries with filters
+if (Auth::isAdmin()) {
+    $countQuery = "SELECT COUNT(*) as total FROM reports r 
+                   LEFT JOIN users u ON r.user_id = u.id 
+                   $whereClause";
+    $reportsQuery = "SELECT r.*, u.username, u.region, u.zone 
+                     FROM reports r 
+                     LEFT JOIN users u ON r.user_id = u.id 
+                     $whereClause 
+                     ORDER BY r.report_month DESC, r.created_at DESC 
+                     LIMIT :limit OFFSET :offset";
+} else {
+    $countQuery = "SELECT COUNT(*) as total FROM reports r 
+                   LEFT JOIN users u ON r.user_id = u.id 
+                   $whereClause";
+    $reportsQuery = "SELECT r.*, u.username, u.region, u.zone 
+                     FROM reports r 
+                     LEFT JOIN users u ON r.user_id = u.id 
+                     $whereClause 
+                     ORDER BY r.report_month DESC, r.created_at DESC 
+                     LIMIT :limit OFFSET :offset";
+}
+
 // Pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = ITEMS_PER_PAGE;
 $offset = ($page - 1) * $limit;
 
-// Get reports based on user role
-if (Auth::isAdmin()) {
-    $countQuery = "SELECT COUNT(*) as total FROM reports r 
-                   LEFT JOIN users u ON r.user_id = u.id";
-    $reportsQuery = "SELECT r.*, u.username, u.region, u.zone 
-                     FROM reports r 
-                     LEFT JOIN users u ON r.user_id = u.id 
-                     ORDER BY r.report_month DESC, r.created_at DESC 
-                     LIMIT :limit OFFSET :offset";
-    $stmt = $conn->prepare($reportsQuery);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-} else {
-    $countQuery = "SELECT COUNT(*) as total FROM reports WHERE user_id = :user_id";
-    $reportsQuery = "SELECT r.*, u.username, u.region, u.zone 
-                     FROM reports r 
-                     LEFT JOIN users u ON r.user_id = u.id 
-                     WHERE r.user_id = :user_id 
-                     ORDER BY r.report_month DESC, r.created_at DESC 
-                     LIMIT :limit OFFSET :offset";
-    $stmt = $conn->prepare($reportsQuery);
-    $stmt->bindValue(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-}
-
 // Get total records for pagination
 $countStmt = $conn->prepare($countQuery);
-if (!Auth::isAdmin()) {
-    $countStmt->bindValue(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+foreach ($params as $key => $value) {
+    $countStmt->bindValue($key, $value);
 }
 $countStmt->execute();
 $totalRecords = $countStmt->fetch()['total'];
 $totalPages = ceil($totalRecords / $limit);
 
-// Get reports
+// Get reports with filters
+$stmt = $conn->prepare($reportsQuery);
+foreach ($params as $key => $value) {
+    $stmt->bindValue($key, $value);
+}
+$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $reports = $stmt->fetchAll();
 
@@ -127,6 +173,39 @@ require_once '../../layouts/header.php';
             </a>
         </div>
     </div>
+
+    <form method="GET" class="mb-6">
+        <div class="flex flex-wrap -mx-3">
+            <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
+                <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
+                <input type="text" id="search" name="search" value="<?php echo $search; ?>" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
+                <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
+                <input type="date" id="start_date" name="start_date" value="<?php echo $startDate; ?>" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
+                <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
+                <input type="date" id="end_date" name="end_date" value="<?php echo $endDate; ?>" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
+                <label for="min_copies" class="block text-sm font-medium text-gray-700">Min Copies</label>
+                <input type="number" id="min_copies" name="min_copies" value="<?php echo $minCopies; ?>" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
+                <label for="max_copies" class="block text-sm font-medium text-gray-700">Max Copies</label>
+                <input type="number" id="max_copies" name="max_copies" value="<?php echo $maxCopies; ?>" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div class="w-full px-3 mb-6 flex space-x-4">
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="fas fa-search mr-2"></i> Search
+                </button>
+                <a href="list.php" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="fas fa-times mr-2"></i> Clear Filters
+                </a>
+            </div>
+        </div>
+    </form>
 
     <?php if (empty($reports)): ?>
     <div class="bg-white rounded-lg shadow p-6 text-center">
@@ -227,21 +306,23 @@ require_once '../../layouts/header.php';
     <div class="mt-6 flex justify-center">
         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
             <?php if ($page > 1): ?>
-            <a href="?page=<?php echo $page - 1; ?>" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            <a href="?page=<?php echo ($page - 1); ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $startDate ? '&start_date=' . urlencode($startDate) : ''; ?><?php echo $endDate ? '&end_date=' . urlencode($endDate) : ''; ?><?php echo $minCopies ? '&min_copies=' . urlencode($minCopies) : ''; ?><?php echo $maxCopies ? '&max_copies=' . urlencode($maxCopies) : ''; ?>" 
+               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                 <span class="sr-only">Previous</span>
                 <i class="fas fa-chevron-left"></i>
             </a>
             <?php endif; ?>
             
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-            <a href="?page=<?php echo $i; ?>" 
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium <?php echo $i === $page ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'; ?>">
+            <a href="?page=<?php echo $i; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $startDate ? '&start_date=' . urlencode($startDate) : ''; ?><?php echo $endDate ? '&end_date=' . urlencode($endDate) : ''; ?><?php echo $minCopies ? '&min_copies=' . urlencode($minCopies) : ''; ?><?php echo $maxCopies ? '&max_copies=' . urlencode($maxCopies) : ''; ?>" 
+               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium <?php echo $i === $page ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-50'; ?>">
                 <?php echo $i; ?>
             </a>
             <?php endfor; ?>
             
             <?php if ($page < $totalPages): ?>
-            <a href="?page=<?php echo $page + 1; ?>" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            <a href="?page=<?php echo ($page + 1); ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $startDate ? '&start_date=' . urlencode($startDate) : ''; ?><?php echo $endDate ? '&end_date=' . urlencode($endDate) : ''; ?><?php echo $minCopies ? '&min_copies=' . urlencode($minCopies) : ''; ?><?php echo $maxCopies ? '&max_copies=' . urlencode($maxCopies) : ''; ?>" 
+               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                 <span class="sr-only">Next</span>
                 <i class="fas fa-chevron-right"></i>
             </a>
