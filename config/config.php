@@ -9,14 +9,14 @@ define('ENVIRONMENT', 'production');
 
 // Base URL configuration
 if (php_sapi_name() === 'cli') {
-    define('BASE_URL', '');
+    define('BASE_URL', '/gpdreports1');
 } else {
     if (ENVIRONMENT === 'production') {
-        define('BASE_URL', '');  // Empty for production since we're in root
+        define('BASE_URL', '/gpdreports1');  // Updated folder name
     } else {
         $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        define('BASE_URL', $protocol . '://' . $host . '/gpdreports');
+        define('BASE_URL', $protocol . '://' . $host . '/gpdreports1');
     }
 }
 

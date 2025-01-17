@@ -1,7 +1,7 @@
 <?php
 class Database {
     private $host = 'localhost';
-    private $db_name = 'gpdreports1';
+    private $db_name = 'gpdreports';
     private $username = 'gpdroot';
     private $password = 'lolamarsh1@A';
     private $conn;
