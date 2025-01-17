@@ -54,18 +54,29 @@ require_once '../../layouts/header.php';
                 <i class="fas fa-arrow-left"></i> Back to Reports
             </a>
         </div>
-        <?php if (Auth::isAdmin() || $report['user_id'] == $_SESSION['user_id']): ?>
-        <div class="flex items-center space-x-2 w-full sm:w-auto justify-start sm:justify-end">
-            <a href="edit.php?id=<?php echo $reportId; ?>" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <i class="fas fa-edit mr-1"></i> Edit Report
-            </a>
-            <?php if (Auth::isAdmin()): ?>
-            <a href="download_pdf.php?id=<?php echo $reportId; ?>" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                <i class="fas fa-download mr-1"></i> Download PDF
-            </a>
-            <?php endif; ?>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+            <div class="text-sm text-gray-500 w-full sm:w-auto">
+                Submitted on <?php echo date('F j, Y', strtotime($report['created_at'])); ?>
+            </div>
+            <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                <?php if (Auth::isAdmin() || $report['user_id'] == $_SESSION['user_id']): ?>
+                    <a href="edit.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                        <i class="fas fa-edit mr-2"></i> Edit Report
+                    </a>
+                <?php endif; ?>
+                <a href="../../includes/export_report.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-file-csv mr-2"></i> Export CSV
+                </a>
+                <a href="../../includes/export_report_html.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <i class="fas fa-file-code mr-2"></i> Export HTML
+                </a>
+                <?php if (Auth::isAdmin()): ?>
+                <a href="download_pdf.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    <i class="fas fa-download mr-2"></i> Download PDF
+                </a>
+                <?php endif; ?>
+            </div>
         </div>
-        <?php endif; ?>
     </div>
 
     <!-- Report Info -->
