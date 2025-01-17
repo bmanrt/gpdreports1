@@ -59,6 +59,20 @@ if (Auth::isAdmin()) {
 }
 $totalCopies = $stmt->fetch(PDO::FETCH_ASSOC)['total_copies'] ?? 0;
 
+// Get available years from reports
+$yearsQuery = "SELECT DISTINCT YEAR(report_month) as year FROM reports";
+if (!Auth::isAdmin()) {
+    $yearsQuery .= " WHERE user_id = :user_id";
+}
+$yearsQuery .= " ORDER BY year DESC";
+
+$yearsStmt = $conn->prepare($yearsQuery);
+if (!Auth::isAdmin()) {
+    $yearsStmt->bindValue(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+}
+$yearsStmt->execute();
+$availableYears = $yearsStmt->fetchAll(PDO::FETCH_COLUMN);
+
 // Get filter parameters
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $startDate = isset($_GET['start_date']) ? $_GET['start_date'] : '';
@@ -204,7 +218,12 @@ require_once '../../layouts/header.php';
             </div>
             <div class="w-full md:w-1/2 xl:w-1/3 px-3 mb-6">
                 <label for="year" class="block text-sm font-medium text-gray-700">Year</label>
-                <input type="number" id="year" name="year" value="<?php echo $filterYear; ?>" min="2000" max="2099" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <select id="year" name="year" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option value="">Select Year</option>
+                    <?php foreach ($availableYears as $year): ?>
+                    <option value="<?php echo $year; ?>" <?php echo $filterYear === (int)$year ? 'selected' : ''; ?>><?php echo $year; ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="w-full px-3 mb-6 flex space-x-4">
                 <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
