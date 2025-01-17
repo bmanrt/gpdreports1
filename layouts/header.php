@@ -33,12 +33,10 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
         :root {
             --header-height: 4rem;
             --mobile-nav-height: 3.5rem;
-            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
         }
         
         * {
             -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
         }
 
         html {
@@ -51,51 +49,31 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
             background-image: url('<?php echo $baseUrl; ?>/assets/images/background.jpg');
             background-size: cover;
             background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
             min-height: 100vh;
             min-height: -webkit-fill-available;
-            padding-bottom: calc(var(--safe-area-inset-bottom) + 1rem);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-            
-            .touch-scroll {
-                -webkit-overflow-scrolling: touch;
-                overflow-x: auto;
-            }
-            
-            .mobile-optimized {
-                font-size: 16px; /* Prevent auto-zoom on iOS */
-                touch-action: manipulation;
-            }
+        input, select, textarea {
+            font-size: 16px !important; /* Prevents iOS zoom on focus */
         }
 
-        /* Improved mobile table handling */
-        @media (max-width: 640px) {
-            .table-responsive {
-                display: block;
-                width: 100%;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            .table-responsive td {
-                white-space: nowrap;
-            }
+        .content-overlay {
+            background-color: rgba(255, 255, 255, 0.9);
+            min-height: 100vh;
+            width: 100%;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Better touch targets for mobile */
-        @media (max-width: 768px) {
-            button, 
-            [role="button"],
-            .clickable {
-                min-height: 44px;
-                min-width: 44px;
-                padding: 0.5rem 1rem;
-            }
+        .auth-overlay {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         /* Preloader Styles */
@@ -126,6 +104,40 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .mobile-menu {
+                display: none;
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                z-index: 40;
+            }
+            .mobile-menu.active {
+                display: block;
+            }
+            main {
+                padding-top: calc(var(--header-height) + 1rem) !important;
+            }
+            .container {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 0 -1rem;
+                padding: 0 1rem;
+            }
+            .touch-scroll {
+                -webkit-overflow-scrolling: touch;
+                overflow-x: auto;
+            }
         }
 
         /* iOS Safe Area Support */
