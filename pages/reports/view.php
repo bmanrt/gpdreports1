@@ -48,79 +48,61 @@ require_once '../../layouts/header.php';
 
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Back button and title -->
-    <div class="flex justify-between items-center mb-6">
-        <div class="flex items-center">
-            <a href="list.php" class="mr-4 text-gray-500 hover:text-gray-700">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1 class="text-2xl font-bold text-gray-900">Report Details</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-            <div class="text-sm text-gray-500">
-                Submitted on <?php echo date('F j, Y', strtotime($report['created_at'])); ?>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <a href="list.php" class="inline-flex items-center text-blue-600 hover:text-blue-700 mobile-optimized">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Reports
+        </a>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Report Details</h1>
+    </div>
+
+    <!-- Report Status and Actions -->
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                    <?php echo getStatusClass($report['status']); ?>">
+                    <?php echo ucfirst($report['status']); ?>
+                </span>
+                <span class="text-sm text-gray-500">
+                    Submitted by <?php echo htmlspecialchars($report['username']); ?>
+                </span>
             </div>
-            <div class="flex space-x-2">
-                <?php if (Auth::isAdmin()): ?>
-                    <a href="edit.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                        <i class="fas fa-edit mr-2"></i> Edit Report
-                    </a>
-                <?php endif; ?>
-                <a href="../../includes/export_report.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <?php if (Auth::isAdmin() || $report['user_id'] == $_SESSION['user_id']): ?>
+            <div class="flex flex-wrap gap-2">
+                <a href="edit.php?id=<?php echo $reportId; ?>" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mobile-optimized">
+                    <i class="fas fa-edit mr-2"></i> Edit
+                </a>
+                <a href="../../includes/export_report.php?id=<?php echo $reportId; ?>" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 mobile-optimized">
                     <i class="fas fa-file-csv mr-2"></i> Export CSV
                 </a>
-                <a href="../../includes/export_report_html.php?id=<?php echo $reportId; ?>" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <a href="../../includes/export_report_html.php?id=<?php echo $reportId; ?>" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 mobile-optimized">
                     <i class="fas fa-file-code mr-2"></i> Export HTML
                 </a>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 
-    <!-- Report Header -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Submitted By</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo htmlspecialchars($report['username']); ?></p>
-                </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Region</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo htmlspecialchars($report['region']); ?></p>
-                </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Zone</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo htmlspecialchars($report['zone']); ?></p>
-                </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-gray-200">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h3 class="text-sm font-medium text-gray-500">Report Month</h3>
-                        <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo date('F Y', strtotime($report['report_month'])); ?></p>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-medium text-gray-500">Submitted On</h3>
-                        <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo date('F j, Y', strtotime($report['created_at'])); ?></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Metrics -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Report Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Total Copies Report -->
-        <div class="bg-white rounded-lg shadow-sm">
-            <div class="px-6 py-4">
+        <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="p-4 sm:p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Total Copies Report</h2>
                 <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Total Copies</span>
-                        <span class="font-semibold text-xl text-blue-600"><?php echo number_format($report['total_copies']); ?></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Total Distribution</span>
-                        <span class="font-semibold text-xl text-green-600"><?php echo number_format($report['total_distribution']); ?></span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 rounded p-4">
+                            <p class="text-sm font-medium text-gray-500">Total Copies</p>
+                            <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo number_format($report['total_copies']); ?></p>
+                        </div>
+                        <div class="bg-gray-50 rounded p-4">
+                            <p class="text-sm font-medium text-gray-500">Total Distribution</p>
+                            <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo number_format($report['total_distribution']); ?></p>
+                        </div>
                     </div>
                     <div class="mt-4 pt-4 border-t border-gray-200">
                         <div class="text-sm text-gray-500">Distribution Rate</div>
@@ -143,25 +125,29 @@ require_once '../../layouts/header.php';
         </div>
 
         <!-- Strategic Income Alerts -->
-        <div class="bg-white rounded-lg shadow-sm">
-            <div class="px-6 py-4">
+        <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="p-4 sm:p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Strategic Income Alerts</h2>
                 <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Monthly Copies</span>
-                        <span class="font-semibold"><?php echo number_format($report['monthly_copies']); ?></span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 rounded p-4">
+                            <p class="text-sm font-medium text-gray-500">Monthly Copies</p>
+                            <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo number_format($report['monthly_copies']); ?></p>
+                        </div>
+                        <div class="bg-gray-50 rounded p-4">
+                            <p class="text-sm font-medium text-gray-500">Wonder Alerts</p>
+                            <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo number_format($report['wonder_alerts']); ?></p>
+                        </div>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Wonder Alerts</span>
-                        <span class="font-semibold"><?php echo number_format($report['wonder_alerts']); ?></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Say Yes to Kids Alerts</span>
-                        <span class="font-semibold"><?php echo number_format($report['kids_alerts']); ?></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Language Redemption Missions</span>
-                        <span class="font-semibold"><?php echo number_format($report['language_missions']); ?></span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 rounded p-4">
+                            <p class="text-sm font-medium text-gray-500">Say Yes to Kids Alerts</p>
+                            <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo number_format($report['kids_alerts']); ?></p>
+                        </div>
+                        <div class="bg-gray-50 rounded p-4">
+                            <p class="text-sm font-medium text-gray-500">Language Redemption Missions</p>
+                            <p class="mt-1 text-lg font-semibold text-gray-900"><?php echo number_format($report['language_missions']); ?></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -169,8 +155,8 @@ require_once '../../layouts/header.php';
     </div>
 
     <!-- Sub Campaigns -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
+    <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 mb-6">
+        <div class="p-4 sm:p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Distribution Report on Sub Campaigns</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-gray-50 rounded p-4">
@@ -210,8 +196,8 @@ require_once '../../layouts/header.php';
     </div>
 
     <!-- Program Report -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
+    <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 mb-6">
+        <div class="p-4 sm:p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Program Report</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="bg-gray-50 rounded p-4">
@@ -227,8 +213,8 @@ require_once '../../layouts/header.php';
     </div>
 
     <!-- Reach and Impact -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
+    <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 mb-6">
+        <div class="p-4 sm:p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Reach and Impact Report</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="bg-gray-50 rounded p-4">
@@ -280,8 +266,8 @@ require_once '../../layouts/header.php';
     </div>
 
     <!-- Attachments -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="px-6 py-4">
+    <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 mb-6">
+        <div class="p-4 sm:p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Attachments</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <?php if ($report['testimonies_file']): ?>
@@ -313,8 +299,8 @@ require_once '../../layouts/header.php';
 
     <!-- Pictures Gallery -->
     <?php if (!empty($images)): ?>
-    <div class="bg-white rounded-lg shadow-sm">
-        <div class="px-6 py-4">
+    <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+        <div class="p-4 sm:p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Pictures Gallery</h2>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 <?php foreach ($images as $image): ?>
